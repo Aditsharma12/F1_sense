@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
-import WorldTrackMap from "@/components/WorldTrackMap";
 import StressPaceChart from "@/components/StressPaceChart";
 import SensorFeeds from "@/components/SensorFeeds";
 import RadialGauges from "@/components/RadialGauges";
-import MountainPeakChart from "@/components/MountainPeakChart";
+import RadarRiskMatrix from "@/components/RadarRiskMatrix";
+import EmotionPieChart from "@/components/EmotionPieChart";
 import AudioPerceptionPanel from "@/components/AudioPerceptionPanel";
 import SectorTimelineChart from "@/components/SectorTimelineChart";
 import TelemetryControls, { TelemetryState } from "@/components/TelemetryControls";
@@ -32,6 +32,8 @@ export default function Dashboard() {
 
   const [apiOnline, setApiOnline] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [history, setHistory] = useState<Array<{ lap: string; stress: number; delta: number }>>([]);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Real AI Analysis Result
   const [analysisResult, setAnalysisResult] = useState({
@@ -41,6 +43,7 @@ export default function Dashboard() {
     stressScore: 0,
     riskLevel: "",
     reasoning: "",
+    emotionScores: {} as Record<string, number>,
   });
 
   const getApiBase = () => (typeof window !== "undefined" && window.location.hostname ? `http://${window.location.hostname}:8000` : "http://localhost:8000");
@@ -110,19 +113,28 @@ export default function Dashboard() {
       }
 
       const res = await fetch(url, options);
-      const data = await res.json();
-      if (res.ok && data.ai_analysis) {
-        setAnalysisResult({
-          transcript: data.ai_analysis.transcript,
-          emotion: data.ai_analysis.emotion,
-          confidence: data.ai_analysis.confidence,
-          stressScore: data.ai_analysis.stress_score,
-          riskLevel: data.system_status.risk_level,
-          reasoning: data.system_status.diagnostic_reasoning,
-        });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ai_analysis) {
+          const stress = data.ai_analysis.stress_score;
+          const delta = Number((tel.actual_lap_time - tel.expected_lap_time).toFixed(2));
+          setAnalysisResult({
+            transcript: data.ai_analysis.transcript,
+            emotion: data.ai_analysis.emotion,
+            confidence: data.ai_analysis.confidence,
+            stressScore: stress,
+            riskLevel: data.system_status.risk_level,
+            reasoning: data.system_status.diagnostic_reasoning,
+            emotionScores: data.ai_analysis.emotion_scores || {},
+          });
+          setHistory((prev) => [
+            ...prev.slice(-7),
+            { lap: `Lap ${tel.lap_number}`, stress, delta },
+          ]);
+        }
       }
     } catch (e) {
-      console.error("FastAPI connection error:", e);
+      // Quietly ignore temporary connection interruptions during slider dragging
     } finally {
       setIsAnalyzing(false);
     }
@@ -136,7 +148,10 @@ export default function Dashboard() {
     const nextTel = { ...telemetry, [field]: val };
     setTelemetry(nextTel);
     if (apiOnline) {
-      executeAnalysis(nextTel, uploadedFile, selectedSample);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        executeAnalysis(nextTel, uploadedFile, selectedSample);
+      }, 400);
     }
   };
 
@@ -198,7 +213,17 @@ export default function Dashboard() {
     : undefined;
 
   return (
-    <main className="min-h-screen bg-[#f4efea] p-4 md:p-6 text-gray-900 selection:bg-[#ff5500] selection:text-white overflow-y-auto space-y-6">
+    <main className="min-h-screen p-4 md:p-6 text-gray-900 selection:bg-[#ff5500] selection:text-white overflow-y-auto space-y-6 relative">
+      {/* Ambient Floating Background Light Orbs (Visible through Frosty Glass) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="w-[500px] h-[500px] rounded-full bg-gradient-to-r from-[#ff5500]/30 to-[#ffaa00]/25 blur-[120px] fixed top-[-80px] left-[-80px] ambient-orb-1" />
+        <div className="w-[450px] h-[450px] rounded-full bg-gradient-to-r from-[#ff7700]/25 to-[#ffbb66]/20 blur-[110px] fixed top-[30%] right-[-100px] ambient-orb-2" />
+        <div className="w-[600px] h-[600px] rounded-full bg-gradient-to-r from-[#ff9900]/20 to-[#0088cc]/15 blur-[140px] fixed bottom-[-150px] left-[30%] ambient-orb-3" />
+        
+        {/* Subtle Vertical Scanning Telemetry Beam */}
+        <div className="w-full h-[150px] bg-gradient-to-b from-transparent via-[#ff5500]/10 to-transparent blur-md fixed top-0 left-0 right-0 scanline-beam pointer-events-none" />
+      </div>
+
       {/* Header Bar */}
       <Header
         apiOnline={apiOnline}
@@ -218,15 +243,12 @@ export default function Dashboard() {
         onReset={handleResetDefaults}
       />
 
-      {/* Grid Row 1: Top 3 Cards (Track Map, Stress Line Chart, Sensor Feeds) */}
+      {/* Grid Row 1: Top 2 Cards (Real Stress Line Chart, Sensor Feeds) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 min-h-[300px]">
-          <WorldTrackMap speed={312} lapNumber={telemetry.lap_number} />
+        <div className="lg:col-span-8 min-h-[280px]">
+          <StressPaceChart stressScore={analysisResult.stressScore} lapDelta={lapDelta} history={history} />
         </div>
-        <div className="lg:col-span-5 min-h-[300px]">
-          <StressPaceChart stressScore={analysisResult.stressScore} lapDelta={lapDelta} />
-        </div>
-        <div className="lg:col-span-3 min-h-[300px]">
+        <div className="lg:col-span-4 min-h-[280px]">
           <SensorFeeds
             stressScore={analysisResult.stressScore}
             tireWear={telemetry.tire_wear_pct}
@@ -236,23 +258,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Grid Row 2: Middle 2 Cards (Radial Gauges, Mountain Peak Chart) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-5 min-h-[280px]">
-          <RadialGauges
-            stressScore={analysisResult.stressScore}
-            steeringInstability={telemetry.steering_instability}
-            lateBraking={telemetry.late_braking_count}
-          />
-        </div>
-        <div className="lg:col-span-7 min-h-[280px]">
-          <MountainPeakChart stressScore={analysisResult.stressScore} />
-        </div>
+      {/* Grid Row 2: Middle 3 Cards (Radial Gauges, Sector Bar Chart, Radar Risk Matrix) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-[280px]">
+        <RadialGauges
+          stressScore={analysisResult.stressScore}
+          steeringInstability={telemetry.steering_instability}
+          lateBraking={telemetry.late_braking_count}
+        />
+        <SectorTimelineChart s1={telemetry.s1} s2={telemetry.s2} s3={telemetry.s3} />
+        <RadarRiskMatrix
+          stressScore={analysisResult.stressScore}
+          tireWear={telemetry.tire_wear_pct}
+          steeringInstability={telemetry.steering_instability}
+          lateBraking={telemetry.late_braking_count}
+          confidence={analysisResult.confidence}
+        />
       </div>
 
-      {/* Grid Row 3: Bottom 2 Cards (Audio Perception, Sector Timeline) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6 min-h-[320px]">
+      {/* Grid Row 3: Bottom 2 Cards (Emotion Donut Chart & Audio Perception Panel) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[300px]">
+        <div className="lg:col-span-4">
+          <EmotionPieChart
+            emotionScores={analysisResult.emotionScores}
+            primaryEmotion={analysisResult.emotion}
+          />
+        </div>
+        <div className="lg:col-span-8">
           <AudioPerceptionPanel
             audioUrl={audioUrl}
             transcript={analysisResult.transcript}
@@ -262,9 +293,6 @@ export default function Dashboard() {
             reasoning={analysisResult.reasoning}
             isAnalyzing={isAnalyzing}
           />
-        </div>
-        <div className="lg:col-span-6 min-h-[320px]">
-          <SectorTimelineChart s1={telemetry.s1} s2={telemetry.s2} s3={telemetry.s3} />
         </div>
       </div>
     </main>

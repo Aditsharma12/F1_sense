@@ -27,7 +27,7 @@ export default function SensorFeeds({
           </span>
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#ff5500]/15 text-[#d94400] font-bold border border-[#ff5500]/30">
-          5 ACTIVE
+          LIVE FEED
         </span>
       </div>
 

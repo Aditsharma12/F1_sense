@@ -103,10 +103,10 @@ graph LR
     end
 
     subgraph Visuals["2. Telemetry & Performance Charts"]
-        C1["World Track Map (Speed & Circuit)"]
-        C2["Stress vs Pace Chart (Pace Delta)"]
-        C3["Sector Timeline Chart (Splits)"]
-        C4["Mountain Peak Chart (Stint Stress)"]
+        C1["Emotion Perception Chart (Donut Chart)"]
+        C2["Stress vs Pace Chart (Dual Y-Axis)"]
+        C3["Sector Deltas Chart (Bar Chart)"]
+        C4["Radar Risk Matrix (5D Spider Web Chart)"]
     end
 
     subgraph Diagnostics["3. AI Perception & Risk Panel"]

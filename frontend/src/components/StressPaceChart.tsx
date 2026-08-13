@@ -7,19 +7,23 @@ import { LineChart as ChartIcon, Zap } from "lucide-react";
 interface StressPaceChartProps {
   stressScore: number;
   lapDelta: number;
+  history?: Array<{ lap: string; stress: number; delta: number }>;
 }
 
-export default function StressPaceChart({ stressScore = 75, lapDelta = 1.2 }: StressPaceChartProps) {
-  // Generate realistic live lap pace & vocal stress telemetry timeline
-  const chartData = [
-    { lap: "L1", stress: 25, delta: 0.1, speed: 310 },
-    { lap: "L2", stress: 30, delta: 0.2, speed: 312 },
-    { lap: "L3", stress: 45, delta: 0.4, speed: 308 },
-    { lap: "L4", stress: 60, delta: 0.8, speed: 305 },
-    { lap: "L5", stress: stressScore > 0 ? stressScore : 78, delta: lapDelta, speed: 298 },
-    { lap: "L6", stress: Math.max(30, stressScore - 15), delta: Math.max(0.3, lapDelta - 0.4), speed: 304 },
-    { lap: "L7", stress: Math.max(20, stressScore - 25), delta: Math.max(0.2, lapDelta - 0.6), speed: 311 },
-  ];
+export default function StressPaceChart({ stressScore = 75, lapDelta = 1.2, history = [] }: StressPaceChartProps) {
+  // Ensure unique X-axis labels for history runs or generate clean lap baseline (Lap N-4 to Lap N)
+  const chartData = history.length > 1
+    ? history.map((item, idx) => ({
+        ...item,
+        label: history.length > 1 ? `Run #${idx + 1}` : item.lap,
+      }))
+    : [
+        { label: "Lap 10", stress: Math.max(15, Math.round(stressScore * 0.3)), delta: Number(Math.max(0.1, lapDelta * 0.2).toFixed(2)) },
+        { label: "Lap 11", stress: Math.max(25, Math.round(stressScore * 0.45)), delta: Number(Math.max(0.2, lapDelta * 0.4).toFixed(2)) },
+        { label: "Lap 12", stress: Math.max(35, Math.round(stressScore * 0.6)), delta: Number(Math.max(0.3, lapDelta * 0.65).toFixed(2)) },
+        { label: "Lap 13", stress: Math.max(45, Math.round(stressScore * 0.8)), delta: Number(Math.max(0.5, lapDelta * 0.85).toFixed(2)) },
+        { label: "Lap 14 (LIVE)", stress: stressScore, delta: lapDelta },
+      ];
 
   return (
     <div className="dashboard-card h-full flex flex-col justify-between">
@@ -31,50 +35,76 @@ export default function StressPaceChart({ stressScore = 75, lapDelta = 1.2 }: St
             DRIVER STRESS VS LAP PACE DELTA
           </span>
         </div>
-        <div className="flex items-center space-x-3 text-[10px] font-mono">
-          <span className="flex items-center space-x-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#d97700] inline-block"></span>
-            <span className="text-gray-700 font-medium">STRESS INDEX</span>
+        <div className="flex items-center space-x-4 text-[10px] font-mono">
+          <span className="flex items-center space-x-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5500] inline-block"></span>
+            <span className="text-gray-700 font-medium">STRESS INDEX (0-100)</span>
           </span>
-          <span className="flex items-center space-x-1">
+          <span className="flex items-center space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-600 inline-block"></span>
-            <span className="text-gray-700 font-medium">LAP DELTA (+s)</span>
+            <span className="text-gray-700 font-medium">PACE DELTA (+s)</span>
           </span>
         </div>
       </div>
 
-      {/* Chart Canvas */}
+      {/* Dual Axis Chart Canvas */}
       <div className="p-3 flex-1 min-h-0 bg-white/30 backdrop-blur-md flex flex-col justify-between">
-        <div className="w-full flex-1 min-h-[130px]">
+        <div className="w-full flex-1 min-h-[140px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 15, right: 15, left: -20, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 15, right: 20, left: -10, bottom: 0 }}>
               <defs>
-                <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
+                <linearGradient id="stressGlow" x1="0" y1="0" x2="1" y2="0">
                   <stop offset="0%" stopColor="#ff5500" />
-                  <stop offset="50%" stopColor="#d97700" />
-                  <stop offset="100%" stopColor="#dc2626" />
+                  <stop offset="100%" stopColor="#d97700" />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" />
-              <XAxis dataKey="lap" stroke="#9ca3af" tick={{ fontSize: 10, fill: "#4b5563" }} />
-              <YAxis stroke="#9ca3af" tick={{ fontSize: 10, fill: "#4b5563" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.12)" />
+              <XAxis dataKey="label" stroke="#4b5563" tick={{ fontSize: 10, fill: "#111827", fontWeight: "bold" }} />
+              
+              {/* Left Y-Axis: Stress Score (0 - 100) */}
+              <YAxis yAxisId="left" domain={[0, 100]} stroke="#ff5500" tick={{ fontSize: 10, fill: "#c2410c", fontWeight: "bold" }} />
+              
+              {/* Right Y-Axis: Lap Delta (+s) */}
+              <YAxis yAxisId="right" orientation="right" stroke="#dc2626" tick={{ fontSize: 10, fill: "#b91c1c", fontWeight: "bold" }} />
+              
               <Tooltip
+                formatter={(value: any, name: any) => [
+                  name === "stress" ? `${value} / 100` : `+${Number(value).toFixed(2)}s`,
+                  name === "stress" ? "Stress Index" : "Lap Delta"
+                ]}
                 contentStyle={{
-                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  backgroundColor: "rgba(255, 255, 255, 0.96)",
                   borderColor: "rgba(0,0,0,0.15)",
                   borderRadius: "12px",
                   fontSize: "11px",
-                  color: "#111827",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+                  color: "#0f172a",
+                  fontWeight: "600",
+                  boxShadow: "0 6px 16px rgba(0,0,0,0.12)"
                 }}
               />
+              
+              {/* Line 1: Vocal Stress Score */}
               <Line
+                yAxisId="left"
                 type="monotone"
                 dataKey="stress"
-                stroke="url(#lineGlow)"
+                name="stress"
+                stroke="url(#stressGlow)"
                 strokeWidth={3}
                 dot={{ r: 5, fill: "#ffaa00", stroke: "#ff5500", strokeWidth: 2 }}
-                activeDot={{ r: 8, fill: "#dc2626", stroke: "#fff", strokeWidth: 2 }}
+                activeDot={{ r: 7, fill: "#ff5500", stroke: "#fff", strokeWidth: 2 }}
+              />
+              
+              {/* Line 2: Lap Pace Loss Delta (+s) */}
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="delta"
+                name="delta"
+                stroke="#dc2626"
+                strokeWidth={2.5}
+                strokeDasharray="4 4"
+                dot={{ r: 4, fill: "#dc2626", stroke: "#991b1b", strokeWidth: 1.5 }}
               />
             </LineChart>
           </ResponsiveContainer>

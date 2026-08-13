@@ -67,7 +67,9 @@ def get_wav2vec_emotion(audio_path):
         logits = emotion_model(**inputs).logits
     probs = torch.nn.functional.softmax(logits, dim=-1)
     confidence, predicted_id = torch.max(probs, dim=-1)
-    return id2label[predicted_id.item()].lower(), float(confidence)
+    
+    scores = {id2label[i].lower(): round(float(probs[0][i]), 4) for i in range(len(id2label))}
+    return id2label[predicted_id.item()].lower(), float(confidence), scores
 
 def process_audio(inputs: dict) -> dict:
     """Node 1: Perception"""
@@ -83,8 +85,8 @@ def process_audio(inputs: dict) -> dict:
         except Exception as e:
             print("Whisper transcribe error:", e)
 
-    emo_label, emo_conf = get_wav2vec_emotion(inputs["audio_path"])
-    return {**inputs, "transcript": transcript, "emotion": emo_label, "confidence": emo_conf}
+    emo_label, emo_conf, emo_scores = get_wav2vec_emotion(inputs["audio_path"])
+    return {**inputs, "transcript": transcript, "emotion": emo_label, "confidence": emo_conf, "emotion_scores": emo_scores}
 
 def calculate_advanced_risk(inputs: dict) -> dict:
     """Node 2: Advanced Fusion Logic"""
@@ -152,7 +154,8 @@ def calculate_advanced_risk(inputs: dict) -> dict:
             "transcript": inputs["transcript"],
             "emotion": emo.upper(),
             "confidence": round(conf, 2),
-            "stress_score": stress
+            "stress_score": stress,
+            "emotion_scores": inputs.get("emotion_scores", {})
         },
         "system_status": {
             "risk_level": risk_level,

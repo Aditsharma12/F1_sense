@@ -143,10 +143,10 @@ export default function RadialGauges({
             </span>
           </div>
           <div className="text-gray-800">
-            LATENCY: <span className="text-[#0088cc] font-bold">12ms</span>
+            STEERING INSTABILITY: <span className="text-[#0088cc] font-bold">{steeringInstability}%</span>
           </div>
           <div className="text-gray-800">
-            DRIVER CAN BUS: <span className="text-[#d97700] font-bold">ACTIVE</span>
+            LATE BRAKING EVENTS: <span className="text-[#d97700] font-bold">{lateBraking}</span>
           </div>
         </div>
       </div>

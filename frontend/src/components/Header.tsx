@@ -65,12 +65,12 @@ export default function Header({
       <div className="flex flex-col lg:flex-row items-center justify-between p-3 gap-3 bg-white/40 backdrop-blur-md">
         {/* Title & Branding */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff5500] to-[#ff9900] flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff5500] to-[#ffaa00] flex items-center justify-center shadow-md">
             <Activity className="w-6 h-6 text-white font-bold" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold tracking-wider text-gray-900 uppercase font-mono">
+              <h1 className="text-lg md:text-xl font-bold tracking-wider text-gray-900 uppercase font-mono">
                 CABIN SENSORS <span className="text-[#ff5500]">&</span> TELEMETRY
               </h1>
               <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-[#ff5500]/15 text-[#d94400] border border-[#ff5500]/30">
@@ -91,7 +91,7 @@ export default function Header({
             </span>
           </div>
 
-          {/* Sample Audio Selection from Real Backend Files */}
+          {/* Sample Audio Selection */}
           <div className="flex items-center space-x-2 bg-white/60 border border-black/10 rounded-xl px-3 py-1.5 text-xs font-mono shadow-sm">
             <Radio className="w-4 h-4 text-[#d97700]" />
             <select
@@ -111,7 +111,7 @@ export default function Header({
             </select>
           </div>
 
-          {/* Microphone Live Recording */}
+          {/* Microphone Recording */}
           {!isRecording ? (
             <button
               onClick={startRecording}
