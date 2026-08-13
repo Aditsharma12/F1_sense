@@ -10,7 +10,7 @@
 flowchart TD
     subgraph Frontend["Frontend (Next.js 15 & React 19)"]
         H["Header (Controls & Recording)"]
-        TC["Telemetry Controls (Sliders & Telemetry Inputs)"]
+        TC["Telemetry Controls (Sliders & Inputs)"]
         
         subgraph Visualization["Dashboard Visualizations"]
             TM["World Track Map"]
@@ -88,45 +88,35 @@ sequenceDiagram
 ## 🧩 Web Dashboard Component Breakdown
 
 ```mermaid
-mindmap
-  root((F1 Sense Dashboard))
-    Controls
-      Header
-        Backend API Status Indicator
-        Sample Audio Selector
-        Custom File Upload
-        Mic Audio Recorder
-      Telemetry Controls
-        Target Lap Time vs Actual Lap Time
-        Sector Deltas (S1, S2, S3)
-        Tire Degradation Percentage
-        Late Braking Event Counter
-        Steering Instability Percentage
-    Telemetry Charts
-      World Track Map
-        Live Speed Indicator
-        Telemetry Lap Number
-      Stress vs Pace Chart
-        Pace Delta Overlay
-        Vocal Stress Overlay
-      Sector Timeline Chart
-        S1, S2, S3 Split Performance
-      Mountain Peak Chart
-        Stint Stress Distribution
-    AI Risk Diagnostics
-      Radial Gauges
-        Stress Index Score
-        Steering Instability Gauge
-        Late Braking Frequency
-      Sensor Feeds
-        Real-time Driver Stress Badge
-        Tire Wear Degradation Indicator
-        Overdriving Anomaly Detection
-      Audio Perception Panel
-        Audio Player & Waveform
-        Whisper Radio Transcript
-        Vocal Emotion & Confidence Score
-        Diagnostic Reasoning & Action Plan
+graph LR
+    subgraph Controls["1. Controls & Input Header"]
+        H1["API Status Indicator"]
+        H2["Sample WAV Selector"]
+        H3["Custom Audio File Uploader"]
+        H4["Mic Audio Recorder"]
+        H5["Run AI Analysis Button"]
+        T1["Pace & Lap Target Inputs"]
+        T2["Sector Deltas (S1, S2, S3)"]
+        T3["Tire Degradation Slider"]
+        T4["Late Braking Counter"]
+        T5["Steering Instability Slider"]
+    end
+
+    subgraph Visuals["2. Telemetry & Performance Charts"]
+        C1["World Track Map (Speed & Circuit)"]
+        C2["Stress vs Pace Chart (Pace Delta)"]
+        C3["Sector Timeline Chart (Splits)"]
+        C4["Mountain Peak Chart (Stint Stress)"]
+    end
+
+    subgraph Diagnostics["3. AI Perception & Risk Panel"]
+        D1["Radial Gauges (Stress, Steering, Braking)"]
+        D2["Sensor Feeds (Live Meters & Anomaly Badges)"]
+        D3["Audio Player & Waveform"]
+        D4["Whisper Radio Transcript"]
+        D5["Wav2Vec2 Vocal Emotion Score"]
+        D6["System Risk Level & Action Plan"]
+    end
 ```
 
 ---
