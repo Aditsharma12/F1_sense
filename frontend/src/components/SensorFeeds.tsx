@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sliders, Heart, AlertOctagon, Disc, Activity } from "lucide-react";
+import { Sliders, AlertOctagon, Disc, Activity } from "lucide-react";
 
 interface SensorFeedsProps {
   stressScore: number;

@@ -43,6 +43,7 @@ export default function SectorTimelineChart({ s1 = 0.35, s2 = 1.25, s3 = 0.70 }:
               <XAxis dataKey="sector" stroke="#4b5563" tick={{ fontSize: 10, fill: "#111827", fontWeight: "bold" }} />
               <YAxis stroke="#4b5563" tick={{ fontSize: 10, fill: "#111827", fontWeight: "bold" }} />
               <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any) => [`+${Number(value).toFixed(2)}s`, "Delta"]}
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.96)",

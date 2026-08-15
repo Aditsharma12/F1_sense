@@ -68,6 +68,7 @@ export default function StressPaceChart({ stressScore = 75, lapDelta = 1.2, hist
               <YAxis yAxisId="right" orientation="right" stroke="#dc2626" tick={{ fontSize: 10, fill: "#b91c1c", fontWeight: "bold" }} />
               
               <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any, name: any) => [
                   name === "stress" ? `${value} / 100` : `+${Number(value).toFixed(2)}s`,
                   name === "stress" ? "Stress Index" : "Lap Delta"
