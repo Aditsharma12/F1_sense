@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Activity, Radio, Cpu, Upload, Play, Mic, Square, Volume2 } from "lucide-react";
+import { Activity, Radio, Cpu, Upload, Play, Mic, Square } from "lucide-react";
 
 interface HeaderProps {
   apiOnline: boolean;
@@ -48,7 +48,7 @@ export default function Header({
 
       mediaRecorderRef.current.start();
       setIsRecording(true);
-    } catch (err) {
+    } catch {
       alert("Microphone access denied or not supported.");
     }
   };

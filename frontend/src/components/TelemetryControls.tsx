@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sliders, RotateCcw, AlertTriangle } from "lucide-react";
+import { Sliders, RotateCcw } from "lucide-react";
 
 export interface TelemetryState {
   audio_path: string;

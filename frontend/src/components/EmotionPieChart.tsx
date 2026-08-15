@@ -23,7 +23,7 @@ const EMOTION_LABELS: Record<string, string> = {
   hap: "Positive / Happy",
 };
 
-export default function EmotionPieChart({ emotionScores = {}, primaryEmotion = "NEU" }: EmotionPieChartProps) {
+export default function EmotionPieChart({ emotionScores = {} }: EmotionPieChartProps) {
   const data = Object.keys(emotionScores).length > 0
     ? Object.entries(emotionScores).map(([key, val]) => ({
         name: EMOTION_LABELS[key] || key.toUpperCase(),
@@ -70,6 +70,7 @@ export default function EmotionPieChart({ emotionScores = {}, primaryEmotion = "
                 ))}
               </Pie>
               <Tooltip
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any) => [`${value}%`, "Probability"]}
                 contentStyle={{
                   backgroundColor: "rgba(255, 255, 255, 0.96)",

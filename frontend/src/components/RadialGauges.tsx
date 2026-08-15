@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Gauge, ShieldAlert } from "lucide-react";
+import { Gauge } from "lucide-react";
 
 interface RadialGaugesProps {
   stressScore: number;
